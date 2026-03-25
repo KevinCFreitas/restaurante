@@ -54,6 +54,12 @@ body {
   opacity: 0.85;
 }
 
+.topo-acoes {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 .pill {
   background: linear-gradient(135deg, var(--yellow-500), #fde68a);
   color: #2b1b00;
@@ -61,6 +67,13 @@ body {
   border-radius: 999px;
   font-weight: 700;
   box-shadow: 0 10px 20px rgba(250, 204, 21, 0.2);
+}
+
+.pill-sec {
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.28);
 }
 
 .hero {
@@ -153,7 +166,7 @@ h5 {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
   gap: 1rem;
 }
 
@@ -180,10 +193,10 @@ h5 {
 
 .prato img {
   width: 100%;
-  height: 150px;
+  height: 220px;
   object-fit: cover;
   border-radius: 10px;
-  margin-bottom: 0.8rem;
+  margin-bottom: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
@@ -195,8 +208,17 @@ h5 {
 .prato p,
 .pedido p,
 .pedido li {
-  color: #f3e8ff;
-  opacity: 0.95;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.prato h4 {
+  font-size: 1.18rem;
+}
+
+.prato p:first-of-type {
+  font-weight: 700;
+  color: #fde68a;
 }
 
 label {
@@ -284,6 +306,26 @@ button:hover {
 
 #itens-selecionados p {
   margin: 0.35rem 0;
+}
+
+
+
+.auth-card {
+  max-width: 520px;
+  margin: 2rem auto;
+}
+
+.subtle {
+  opacity: 0.9;
+  margin-top: -0.25rem;
+}
+
+.sec-btn {
+  width: auto;
+  background: linear-gradient(135deg, #7c3aed, #9333ea);
+  color: #f8f5ff;
+  border: none;
+  padding: 0.65rem 0.9rem;
 }
 
 @media (max-width: 720px) {

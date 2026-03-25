@@ -3,7 +3,7 @@
 Sistema web de restaurante com:
 - catálogo de pratos (com imagens)
 - criação de pedidos
-- painel da cozinha com tempos de entrada/início/saída
+- painel da cozinha com login de funcionários
 
 ## Como iniciar localmente
 
@@ -15,16 +15,28 @@ Sistema web de restaurante com:
 npm start
 ```
 
-> Este projeto **não depende de `npm install`** para iniciar, porque não usa pacotes externos.
-
 A aplicação abre em:
 - `http://localhost:3000`
 
 Se a porta 3000 já estiver ocupada, o servidor tenta automaticamente a próxima disponível (`3001`, `3002`, ...).
 
-### 3) Porta personalizada
+## Área dos funcionários (cozinha)
+
+A cozinha foi separada em uma página exclusiva:
+- `http://localhost:3000/public/cozinha.html`
+
+Credenciais padrão:
+- Usuário: `funcionario`
+- Senha: `123456`
+
+Você pode trocar por variáveis de ambiente:
+- `EMPLOYEE_USER`
+- `EMPLOYEE_PASS`
+- `EMPLOYEE_TOKEN`
+
+Exemplo:
 ```bash
-PORT=4000 npm start
+EMPLOYEE_USER=cozinha EMPLOYEE_PASS=minhasenha EMPLOYEE_TOKEN=token123 npm start
 ```
 
 ## Deploy na Vercel
@@ -45,10 +57,11 @@ Na Vercel, a base JSON roda em `/tmp` (temporária). Isso é ótimo para demo, m
 Para produção real, conecte um banco (Postgres, MongoDB, Supabase, etc.).
 
 ## Rotas da API
+- `POST /api/func/login`
 - `GET /api/pratos`
 - `POST /api/pratos`
-- `GET /api/pedidos`
+- `GET /api/pedidos` (restrito a funcionário)
 - `POST /api/pedidos`
-- `PATCH /api/pedidos/:id/iniciar`
-- `PATCH /api/pedidos/:id/pronto`
-- `PATCH /api/pedidos/:id/entregue`
+- `PATCH /api/pedidos/:id/iniciar` (restrito a funcionário)
+- `PATCH /api/pedidos/:id/pronto` (restrito a funcionário)
+- `PATCH /api/pedidos/:id/entregue` (restrito a funcionário)

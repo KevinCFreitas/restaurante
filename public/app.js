@@ -1,11 +1,9 @@
 const state = {
   pratos: [],
-  pedidos: [],
   carrinho: []
 };
 
 const cardapioEl = document.getElementById('cardapio');
-const pedidosEl = document.getElementById('pedidos');
 const itensSelecionadosEl = document.getElementById('itens-selecionados');
 
 async function api(path, options = {}) {
@@ -24,16 +22,6 @@ async function api(path, options = {}) {
 
 function formatMoney(v) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function statusLabel(status) {
-  const map = {
-    recebido: 'Recebido',
-    em_preparo: 'Em preparo',
-    pronto: 'Pronto',
-    entregue: 'Entregue'
-  };
-  return map[status] || status;
 }
 
 function renderCardapio() {
@@ -76,63 +64,9 @@ function renderCarrinho() {
   });
 }
 
-function renderPedidos() {
-  pedidosEl.innerHTML = '';
-
-  if (!state.pedidos.length) {
-    pedidosEl.innerHTML = '<p>Sem pedidos no momento.</p>';
-    return;
-  }
-
-  state.pedidos.forEach((pedido) => {
-    const article = document.createElement('article');
-    article.className = 'pedido';
-
-    const itens = pedido.itens
-      .map((i) => `<li>${i.nome} × ${i.quantidade} (${i.tempo_estimado_min} min)</li>`)
-      .join('');
-
-    const emProducao =
-      pedido.tempo_em_producao_min == null
-        ? '—'
-        : `${pedido.tempo_em_producao_min} min em produção`;
-
-    article.innerHTML = `
-      <h4>Pedido #${pedido.id} · ${pedido.cliente_nome}</h4>
-      <span class="status ${pedido.status}">${statusLabel(pedido.status)}</span>
-      <p><strong>Entrada:</strong> ${new Date(pedido.criado_em).toLocaleString('pt-BR')}</p>
-      <p><strong>Início:</strong> ${pedido.iniciado_em ? new Date(pedido.iniciado_em).toLocaleString('pt-BR') : '—'}</p>
-      <p><strong>Saída (pronto/entregue):</strong> ${pedido.pronto_em ? new Date(pedido.pronto_em).toLocaleString('pt-BR') : '—'}</p>
-      <p><strong>Tempo estimado:</strong> ${pedido.tempo_total_estimado_min} min</p>
-      <p><strong>Tempo atual:</strong> ${emProducao}</p>
-      <ul>${itens}</ul>
-      <div class="acoes">
-        <button data-acao="iniciar">Iniciar</button>
-        <button data-acao="pronto" class="sec">Pronto</button>
-        <button data-acao="entregue" class="sec">Entregue</button>
-      </div>
-    `;
-
-    article.querySelectorAll('button').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const acao = btn.getAttribute('data-acao');
-        await api(`/api/pedidos/${pedido.id}/${acao}`, { method: 'PATCH' });
-        await loadPedidos();
-      });
-    });
-
-    pedidosEl.appendChild(article);
-  });
-}
-
 async function loadPratos() {
   state.pratos = await api('/api/pratos');
   renderCardapio();
-}
-
-async function loadPedidos() {
-  state.pedidos = await api('/api/pedidos');
-  renderPedidos();
 }
 
 document.getElementById('pedido-form').addEventListener('submit', async (event) => {
@@ -152,7 +86,7 @@ document.getElementById('pedido-form').addEventListener('submit', async (event) 
   state.carrinho = [];
   event.target.reset();
   renderCarrinho();
-  await loadPedidos();
+  alert('Pedido enviado com sucesso!');
 });
 
 document.getElementById('prato-form').addEventListener('submit', async (event) => {
@@ -184,9 +118,8 @@ document.querySelectorAll('.aba').forEach((button) => {
 });
 
 async function start() {
-  await Promise.all([loadPratos(), loadPedidos()]);
+  await loadPratos();
   renderCarrinho();
-  setInterval(loadPedidos, 15000);
 }
 
 start().catch((error) => {

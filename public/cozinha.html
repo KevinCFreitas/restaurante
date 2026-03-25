@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Área da Cozinha · Restaurante Express</title>
+    <link rel="stylesheet" href="/public/styles.css" />
+  </head>
+  <body>
+    <header class="topo">
+      <div>
+        <h1>Área da Cozinha</h1>
+        <p>Acesso exclusivo para funcionários</p>
+      </div>
+      <div class="topo-acoes">
+        <a class="pill pill-sec" href="/">Voltar ao cardápio</a>
+      </div>
+    </header>
+
+    <main>
+      <section id="login-card" class="card auth-card">
+        <h3>Login de funcionário</h3>
+        <form id="login-form">
+          <label>Usuário <input id="func-user" required /></label>
+          <label>Senha <input id="func-pass" type="password" required /></label>
+          <button type="submit">Entrar</button>
+        </form>
+      </section>
+
+      <section id="cozinha-app" class="tab" style="display: none">
+        <h3>Painel da cozinha</h3>
+        <p class="subtle">Somente usuários autenticados conseguem visualizar e atualizar pedidos.</p>
+        <button id="logout-btn" class="sec-btn">Sair da área de funcionários</button>
+        <div id="pedidos" class="coluna" style="margin-top: 1rem"></div>
+      </section>
+    </main>
+
+    <script src="/public/cozinha.js"></script>
+  </body>
+</html>

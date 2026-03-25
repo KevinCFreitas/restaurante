@@ -2,6 +2,9 @@ const path = require('path');
 const { ensureDb, readDb, writeDb } = require('../lib/db');
 
 const DB_PATH = path.join('/tmp', 'restaurante-database.json');
+const EMPLOYEE_USER = process.env.EMPLOYEE_USER || 'funcionario';
+const EMPLOYEE_PASS = process.env.EMPLOYEE_PASS || '123456';
+const EMPLOYEE_TOKEN = process.env.EMPLOYEE_TOKEN || 'restaurante-func-token';
 
 function nowIso() {
   return new Date().toISOString();
@@ -45,6 +48,15 @@ async function parseBody(req) {
   });
 }
 
+function isEmployeeAuthorized(req) {
+  const auth = req.headers.authorization || '';
+  return auth === `Bearer ${EMPLOYEE_TOKEN}`;
+}
+
+function isEmployeeCredentialValid(usuario, senha) {
+  return usuario === EMPLOYEE_USER && senha === EMPLOYEE_PASS;
+}
+
 function getDb() {
   ensureDb(DB_PATH);
   return readDb(DB_PATH);
@@ -60,5 +72,8 @@ module.exports = {
   sendJson,
   parseBody,
   getDb,
-  saveDb
+  saveDb,
+  isEmployeeAuthorized,
+  isEmployeeCredentialValid,
+  EMPLOYEE_TOKEN
 };

@@ -1,7 +1,16 @@
-const { getDb, saveDb, parseBody, sendJson, enrichPedido, nowIso } = require('./_utils');
+const {
+  getDb,
+  saveDb,
+  parseBody,
+  sendJson,
+  enrichPedido,
+  nowIso,
+  isEmployeeAuthorized
+} = require('./_utils');
 
 module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
+    if (!isEmployeeAuthorized(req)) return sendJson(res, 401, { erro: 'Acesso restrito para funcionários.' });
     const db = getDb();
     const pedidos = db.pedidos.slice().reverse().map(enrichPedido);
     return sendJson(res, 200, pedidos);

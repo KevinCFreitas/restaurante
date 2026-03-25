@@ -12,7 +12,10 @@
         <h1>Restaurante Express</h1>
         <p>Cardápio online + gestão da cozinha em tempo real</p>
       </div>
-      <div class="pill">Delivery e retirada</div>
+      <div class="topo-acoes">
+        <a class="pill pill-sec" href="/public/cozinha.html">Área dos funcionários</a>
+        <div class="pill">Delivery e retirada</div>
+      </div>
     </header>
 
     <section class="hero">
@@ -27,7 +30,6 @@
 
     <nav class="abas">
       <button class="aba ativa" data-tab="cliente">Cliente</button>
-      <button class="aba" data-tab="cozinha">Cozinha</button>
       <button class="aba" data-tab="cadastro">Cadastrar prato</button>
     </nav>
 
@@ -45,11 +47,6 @@
           <div id="itens-selecionados"></div>
           <button type="submit">Enviar pedido</button>
         </form>
-      </section>
-
-      <section id="tab-cozinha" class="tab">
-        <h3>Painel da cozinha</h3>
-        <div id="pedidos" class="coluna"></div>
       </section>
 
       <section id="tab-cadastro" class="tab">

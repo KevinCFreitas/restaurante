@@ -7,9 +7,17 @@ const { ensureDb, readDb, writeDb } = require('./lib/db');
 const BASE_PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DB_PATH = path.join(__dirname, 'database.json');
+const EMPLOYEE_USER = process.env.EMPLOYEE_USER || 'funcionario';
+const EMPLOYEE_PASS = process.env.EMPLOYEE_PASS || '123456';
+const EMPLOYEE_TOKEN = process.env.EMPLOYEE_TOKEN || 'restaurante-func-token';
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function isEmployeeAuthorized(req) {
+  const auth = req.headers.authorization || '';
+  return auth === `Bearer ${EMPLOYEE_TOKEN}`;
 }
 
 function sendJson(res, status, data) {
@@ -79,6 +87,19 @@ ensureDb(DB_PATH);
 const server = http.createServer(async (req, res) => {
   const reqUrl = new URL(req.url, `http://${req.headers.host}`);
 
+
+  if (req.method === 'POST' && reqUrl.pathname === '/api/func/login') {
+    try {
+      const body = await collectBody(req);
+      if (body.usuario === EMPLOYEE_USER && body.senha === EMPLOYEE_PASS) {
+        return sendJson(res, 200, { token: EMPLOYEE_TOKEN });
+      }
+      return sendJson(res, 401, { erro: 'Usuário ou senha inválidos' });
+    } catch (error) {
+      return sendJson(res, 400, { erro: error.message });
+    }
+  }
+
   if (req.method === 'GET' && reqUrl.pathname === '/api/pratos') {
     const db = readDb(DB_PATH);
     return sendJson(res, 200, db.pratos.filter((p) => p.ativo));
@@ -112,6 +133,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && reqUrl.pathname === '/api/pedidos') {
+    if (!isEmployeeAuthorized(req)) return sendJson(res, 401, { erro: 'Acesso restrito para funcionários.' });
     const db = readDb(DB_PATH);
     const pedidos = db.pedidos.slice().reverse().map(enrichPedido);
     return sendJson(res, 200, pedidos);
@@ -161,6 +183,7 @@ const server = http.createServer(async (req, res) => {
 
   const statusMatch = reqUrl.pathname.match(/^\/api\/pedidos\/(\d+)\/(iniciar|pronto|entregue)$/);
   if (req.method === 'PATCH' && statusMatch) {
+    if (!isEmployeeAuthorized(req)) return sendJson(res, 401, { erro: 'Acesso restrito para funcionários.' });
     const pedidoId = Number(statusMatch[1]);
     const acao = statusMatch[2];
 

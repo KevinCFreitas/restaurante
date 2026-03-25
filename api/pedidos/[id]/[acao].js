@@ -1,6 +1,10 @@
-const { getDb, saveDb, sendJson, enrichPedido, nowIso } = require('../../_utils');
+const { getDb, saveDb, sendJson, enrichPedido, nowIso, isEmployeeAuthorized } = require('../../_utils');
 
 module.exports = async function handler(req, res) {
+  if (!isEmployeeAuthorized(req)) {
+    return sendJson(res, 401, { erro: 'Acesso restrito para funcionários.' });
+  }
+
   if (req.method !== 'PATCH') {
     return sendJson(res, 405, { erro: 'Método não permitido' });
   }
