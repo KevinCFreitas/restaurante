@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
 
-const PORT = process.env.PORT || 3000;
+const BASE_PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const DB_PATH = path.join(__dirname, 'database.json');
 
@@ -213,6 +213,25 @@ const server = http.createServer(async (req, res) => {
   res.end('Rota não encontrada');
 });
 
-server.listen(PORT, () => {
-  console.log(`Servidor restaurante ativo em http://localhost:${PORT}`);
+let currentPort = BASE_PORT;
+
+function startServer(port) {
+  currentPort = port;
+  server.listen(port, '0.0.0.0', () => {
+    console.log(`Servidor restaurante ativo em http://localhost:${port}`);
+  });
+}
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    const nextPort = currentPort + 1;
+    console.warn(`Porta ${currentPort} ocupada. Tentando ${nextPort}...`);
+    setTimeout(() => startServer(nextPort), 100);
+    return;
+  }
+
+  console.error('Falha ao iniciar servidor:', error);
+  process.exit(1);
 });
+
+startServer(BASE_PORT);
