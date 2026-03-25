@@ -43,6 +43,7 @@ function renderCardapio() {
     const card = document.createElement('article');
     card.className = 'prato';
     card.innerHTML = `
+      ${prato.imagem_url ? `<img src="${prato.imagem_url}" alt="${prato.nome}" loading="lazy" />` : ''}
       <h4>${prato.nome}</h4>
       <p>${prato.categoria}</p>
       <p><strong>${formatMoney(prato.preco)}</strong> · ${prato.tempo_estimado_min} min</p>
@@ -163,7 +164,8 @@ document.getElementById('prato-form').addEventListener('submit', async (event) =
       nome: document.getElementById('prato_nome').value.trim(),
       categoria: document.getElementById('prato_categoria').value.trim(),
       preco: Number(document.getElementById('prato_preco').value),
-      tempo_estimado_min: Number(document.getElementById('prato_tempo').value)
+      tempo_estimado_min: Number(document.getElementById('prato_tempo').value),
+      imagem_url: document.getElementById('prato_imagem').value.trim() || null
     })
   });
 
