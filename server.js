@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const { ensureDb, readDb, writeDb } = require('./lib/db');
 
 const BASE_PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -11,37 +12,16 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-function ensureDb() {
-  if (!fs.existsSync(DB_PATH)) {
-    const initial = {
-      pratos: [
-        { id: 1, nome: 'Hambúrguer Artesanal', categoria: 'Lanches', preco: 29.9, tempo_estimado_min: 20, ativo: true },
-        { id: 2, nome: 'Pizza Margherita', categoria: 'Pizzas', preco: 54.9, tempo_estimado_min: 35, ativo: true },
-        { id: 3, nome: 'Lasanha Bolonhesa', categoria: 'Massas', preco: 42.0, tempo_estimado_min: 30, ativo: true },
-        { id: 4, nome: 'Salada Caesar', categoria: 'Saudável', preco: 24.0, tempo_estimado_min: 12, ativo: true },
-        { id: 5, nome: 'Suco Natural 500ml', categoria: 'Bebidas', preco: 11.5, tempo_estimado_min: 5, ativo: true }
-      ],
-      pedidos: [],
-      counters: { prato: 5, pedido: 0 }
-    };
-    fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2));
-  }
-}
-
-function readDb() {
-  return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-}
-
-function writeDb(db) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
-}
-
 function sendJson(res, status, data) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(data));
 }
 
-function sendFile(res, filePath) {
+function sendFile(res, requestedPath) {
+  const safePath = requestedPath.replace(/^\/public\//, '/');
+  const resolved = safePath === '/' ? '/index.html' : safePath;
+  const filePath = path.join(PUBLIC_DIR, resolved);
+
   if (!fs.existsSync(filePath)) {
     res.writeHead(404);
     res.end('Not found');
@@ -52,10 +32,15 @@ function sendFile(res, filePath) {
   const map = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
-    '.js': 'application/javascript; charset=utf-8'
+    '.js': 'application/javascript; charset=utf-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml'
   };
 
-  res.writeHead(200, { 'Content-Type': map[ext] || 'text/plain; charset=utf-8' });
+  res.writeHead(200, { 'Content-Type': map[ext] || 'application/octet-stream' });
   fs.createReadStream(filePath).pipe(res);
 }
 
@@ -89,25 +74,25 @@ function enrichPedido(pedido) {
   };
 }
 
-ensureDb();
+ensureDb(DB_PATH);
 
 const server = http.createServer(async (req, res) => {
   const reqUrl = new URL(req.url, `http://${req.headers.host}`);
 
   if (req.method === 'GET' && reqUrl.pathname === '/api/pratos') {
-    const db = readDb();
+    const db = readDb(DB_PATH);
     return sendJson(res, 200, db.pratos.filter((p) => p.ativo));
   }
 
   if (req.method === 'POST' && reqUrl.pathname === '/api/pratos') {
     try {
       const body = await collectBody(req);
-      const { nome, categoria, preco, tempo_estimado_min } = body;
+      const { nome, categoria, preco, tempo_estimado_min, imagem_url } = body;
       if (!nome || !categoria || preco == null || !tempo_estimado_min) {
         return sendJson(res, 400, { erro: 'Preencha nome, categoria, preço e tempo estimado.' });
       }
 
-      const db = readDb();
+      const db = readDb(DB_PATH);
       db.counters.prato += 1;
       const prato = {
         id: db.counters.prato,
@@ -115,10 +100,11 @@ const server = http.createServer(async (req, res) => {
         categoria,
         preco: Number(preco),
         tempo_estimado_min: Number(tempo_estimado_min),
+        imagem_url: imagem_url || null,
         ativo: true
       };
       db.pratos.push(prato);
-      writeDb(db);
+      writeDb(DB_PATH, db);
       return sendJson(res, 201, prato);
     } catch (error) {
       return sendJson(res, 400, { erro: error.message });
@@ -126,7 +112,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && reqUrl.pathname === '/api/pedidos') {
-    const db = readDb();
+    const db = readDb(DB_PATH);
     const pedidos = db.pedidos.slice().reverse().map(enrichPedido);
     return sendJson(res, 200, pedidos);
   }
@@ -140,7 +126,7 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 400, { erro: 'Informe o cliente e ao menos um prato.' });
       }
 
-      const db = readDb();
+      const db = readDb(DB_PATH);
       db.counters.pedido += 1;
 
       const itensNormalizados = itens.map((item) => {
@@ -166,7 +152,7 @@ const server = http.createServer(async (req, res) => {
       };
 
       db.pedidos.push(pedido);
-      writeDb(db);
+      writeDb(DB_PATH, db);
       return sendJson(res, 201, enrichPedido(pedido));
     } catch (error) {
       return sendJson(res, 400, { erro: error.message });
@@ -178,7 +164,7 @@ const server = http.createServer(async (req, res) => {
     const pedidoId = Number(statusMatch[1]);
     const acao = statusMatch[2];
 
-    const db = readDb();
+    const db = readDb(DB_PATH);
     const pedido = db.pedidos.find((p) => p.id === pedidoId);
     if (!pedido) return sendJson(res, 404, { erro: 'Pedido não encontrado' });
 
@@ -197,16 +183,12 @@ const server = http.createServer(async (req, res) => {
       pedido.entregue_em = nowIso();
     }
 
-    writeDb(db);
+    writeDb(DB_PATH, db);
     return sendJson(res, 200, enrichPedido(pedido));
   }
 
   if (req.method === 'GET') {
-    const filePath =
-      reqUrl.pathname === '/'
-        ? path.join(PUBLIC_DIR, 'index.html')
-        : path.join(PUBLIC_DIR, reqUrl.pathname);
-    return sendFile(res, filePath);
+    return sendFile(res, reqUrl.pathname);
   }
 
   res.writeHead(404);
