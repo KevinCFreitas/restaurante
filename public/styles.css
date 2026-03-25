@@ -1,0 +1,161 @@
+:root {
+  --red: #ef233c;
+  --dark: #1f2937;
+  --light: #f5f6fa;
+  --ok: #16a34a;
+  --warn: #f59e0b;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: Inter, Arial, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--light);
+  color: var(--dark);
+}
+
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 2rem;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.topo h1 {
+  margin: 0;
+  color: var(--red);
+}
+
+.pill {
+  background: #ffe4e6;
+  color: #be123c;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.hero {
+  margin: 1rem 2rem;
+  background: linear-gradient(135deg, #ef233c, #ff4d6d);
+  color: white;
+  border-radius: 16px;
+  padding: 1.4rem;
+}
+
+.abas {
+  display: flex;
+  gap: 0.8rem;
+  margin: 1rem 2rem;
+}
+
+.aba {
+  border: none;
+  background: #e5e7eb;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.aba.ativa {
+  background: var(--red);
+  color: white;
+}
+
+main {
+  margin: 0 2rem 2rem;
+}
+
+.tab {
+  display: none;
+}
+
+.tab.ativo {
+  display: block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.card,
+.prato,
+.pedido {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.prato h4,
+.pedido h4 {
+  margin: 0 0 0.5rem;
+}
+
+label {
+  display: block;
+  margin: 0.6rem 0;
+}
+
+input,
+select,
+button {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+button {
+  background: var(--red);
+  color: white;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coluna {
+  display: grid;
+  gap: 1rem;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.status.recebido {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status.em_preparo {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status.pronto,
+.status.entregue {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.acoes {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.acoes button.sec {
+  background: #4b5563;
+}
