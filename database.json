@@ -47,8 +47,18 @@
     }
   ],
   "pedidos": [],
+  "funcionarios": [
+    {
+      "id": 1,
+      "nome": "Funcionário Padrão",
+      "usuario": "funcionario",
+      "senha": "123456",
+      "cargo": "funcionario"
+    }
+  ],
   "counters": {
     "prato": 5,
-    "pedido": 0
+    "pedido": 0,
+    "funcionario": 1
   }
 }

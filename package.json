@@ -5,6 +5,6 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check lib/db.js && node --check api/_utils.js && node --check api/pratos.js && node --check api/pedidos.js && node --check api/pedidos/[id]/[acao].js && node --check api/func/login.js && node --check public/app.js && node --check public/cozinha.js"
+    "check": "node --check server.js && node --check lib/db.js && node --check api/_utils.js && node --check api/pratos.js && node --check api/pedidos.js && node --check api/pedidos/[id]/[acao].js && node --check api/func/login.js && node --check api/func/cadastro.js && node --check public/app.js && node --check public/cozinha.js"
   }
 }
