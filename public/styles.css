@@ -144,6 +144,10 @@ h5 {
   color: #fff;
 }
 
+h5 {
+  margin: 0.2rem 0 0.5rem;
+}
+
 .tab {
   display: none;
   animation: fadeIn 250ms ease;
@@ -170,6 +174,19 @@ h5 {
   gap: 1rem;
 }
 
+.categoria-box {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+  border-radius: 14px;
+  padding: 1rem;
+  border: 1px solid var(--card-border);
+}
+
+.categoria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
 .card,
 .prato,
 .pedido {
@@ -190,6 +207,19 @@ h5 {
   border-color: rgba(250, 204, 21, 0.45);
 }
 
+.comanda-card {
+  border-style: dashed;
+  border-width: 2px;
+}
+
+.comanda-box {
+  margin: 0.8rem 0;
+  padding: 0.8rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+}
+
 
 .prato img {
   width: 100%;
@@ -203,6 +233,10 @@ h5 {
 .prato h4,
 .pedido h4 {
   margin: 0 0 0.5rem;
+}
+
+.cols-funcionario {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .prato p,

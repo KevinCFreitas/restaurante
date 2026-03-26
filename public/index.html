@@ -28,37 +28,30 @@
       </div>
     </section>
 
-    <nav class="abas">
-      <button class="aba ativa" data-tab="cliente">Cliente</button>
-      <button class="aba" data-tab="cadastro">Cadastrar prato</button>
-    </nav>
-
     <main>
-      <section id="tab-cliente" class="tab ativo">
+      <section class="tab ativo">
         <h3>Cardápio</h3>
         <div id="cardapio" class="grid"></div>
 
-        <form id="pedido-form" class="card">
-          <h4>Novo pedido</h4>
+        <form id="pedido-form" class="card comanda-card">
+          <h4>Seu pedido</h4>
+          <p class="subtle">Escolha seus itens e acompanhe quando estiver pronto para envio ou retirada.</p>
+          <label>Nome do cliente <input type="text" id="cliente_nome" required /></label>
           <label>
-            Nome do cliente
-            <input type="text" id="cliente_nome" required />
+            Tipo de atendimento
+            <select id="tipo_atendimento" required>
+              <option value="delivery">Delivery</option>
+              <option value="retirada">Retirada no estabelecimento</option>
+            </select>
           </label>
-          <div id="itens-selecionados"></div>
-          <button type="submit">Enviar pedido</button>
+          <div id="itens-selecionados" class="comanda-box"></div>
+          <button type="submit">Confirmar pedido</button>
         </form>
-      </section>
 
-      <section id="tab-cadastro" class="tab">
-        <form id="prato-form" class="card">
-          <h4>Cadastrar prato</h4>
-          <label>Nome <input id="prato_nome" required /></label>
-          <label>Categoria <input id="prato_categoria" required /></label>
-          <label>Preço (R$) <input id="prato_preco" type="number" min="0" step="0.01" required /></label>
-          <label>Tempo estimado (min) <input id="prato_tempo" type="number" min="1" required /></label>
-          <label>URL da imagem <input id="prato_imagem" type="url" placeholder="https://..." /></label>
-          <button type="submit">Salvar prato</button>
-        </form>
+        <section class="card">
+          <h4>Pedidos em andamento</h4>
+          <div id="pedidos-cliente" class="coluna"></div>
+        </section>
       </section>
     </main>
 
