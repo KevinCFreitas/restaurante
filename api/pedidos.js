@@ -10,34 +10,16 @@ const {
 
 module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
+    if (!isEmployeeAuthorized(req)) return sendJson(res, 401, { erro: 'Acesso restrito para funcionários.' });
     const db = getDb();
-    const clienteNome = (req.query?.cliente_nome || '').toString().trim().toLowerCase();
     const pedidos = db.pedidos.slice().reverse().map(enrichPedido);
-
-    if (isEmployeeAuthorized(req)) {
-      return sendJson(res, 200, pedidos);
-    }
-
-    if (!clienteNome) {
-      return sendJson(res, 401, { erro: 'Acesso restrito para funcionários.' });
-    }
-
-    const filtrados = pedidos
-      .filter((pedido) => pedido.cliente_nome.toLowerCase() === clienteNome)
-      .map((pedido) => ({
-        id: pedido.id,
-        cliente_nome: pedido.cliente_nome,
-        tipo_atendimento: pedido.tipo_atendimento || 'delivery',
-        status: pedido.status,
-        criado_em: pedido.criado_em
-      }));
-    return sendJson(res, 200, filtrados);
+    return sendJson(res, 200, pedidos);
   }
 
   if (req.method === 'POST') {
     try {
       const body = await parseBody(req);
-      const { cliente_nome, itens, tipo_atendimento } = body;
+      const { cliente_nome, itens } = body;
 
       if (!cliente_nome || !Array.isArray(itens) || !itens.length) {
         return sendJson(res, 400, { erro: 'Informe o cliente e ao menos um prato.' });
@@ -60,7 +42,6 @@ module.exports = async function handler(req, res) {
       const pedido = {
         id: db.counters.pedido,
         cliente_nome,
-        tipo_atendimento: tipo_atendimento === 'retirada' ? 'retirada' : 'delivery',
         status: 'recebido',
         criado_em: nowIso(),
         iniciado_em: null,

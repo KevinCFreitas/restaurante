@@ -1,5 +1,4 @@
-const pedidosPendentesEl = document.getElementById('pedidos-pendentes');
-const pedidosConcluidosEl = document.getElementById('pedidos-concluidos');
+const pedidosEl = document.getElementById('pedidos');
 const loginCardEl = document.getElementById('login-card');
 const cozinhaAppEl = document.getElementById('cozinha-app');
 const TOKEN_KEY = 'func_token';
@@ -9,7 +8,7 @@ function statusLabel(status) {
     recebido: 'Recebido',
     em_preparo: 'Em preparo',
     pronto: 'Pronto',
-    entregue: 'Finalizado'
+    entregue: 'Entregue'
   };
   return map[status] || status;
 }
@@ -37,11 +36,11 @@ function setLoggedIn(isLoggedIn) {
   cozinhaAppEl.style.display = isLoggedIn ? 'block' : 'none';
 }
 
-function renderListaPedidos(listaEl, pedidos, tipo) {
-  listaEl.innerHTML = '';
+function renderPedidos(pedidos) {
+  pedidosEl.innerHTML = '';
 
   if (!pedidos.length) {
-    listaEl.innerHTML = `<p>Sem pedidos ${tipo === 'pendente' ? 'para fazer' : 'concluídos'}.</p>`;
+    pedidosEl.innerHTML = '<p>Sem pedidos no momento.</p>';
     return;
   }
 
@@ -49,60 +48,39 @@ function renderListaPedidos(listaEl, pedidos, tipo) {
     const article = document.createElement('article');
     article.className = 'pedido';
 
-    const itens = pedido.itens.map((i) => `<li>${i.nome} × ${i.quantidade}</li>`).join('');
-    const atendimento = pedido.tipo_atendimento === 'retirada' ? 'Retirada' : 'Delivery';
+    const itens = pedido.itens
+      .map((i) => `<li>${i.nome} × ${i.quantidade} (${i.tempo_estimado_min} min)</li>`)
+      .join('');
+
+    const emProducao =
+      pedido.tempo_em_producao_min == null ? '—' : `${pedido.tempo_em_producao_min} min em produção`;
 
     article.innerHTML = `
       <h4>Pedido #${pedido.id} · ${pedido.cliente_nome}</h4>
       <span class="status ${pedido.status}">${statusLabel(pedido.status)}</span>
-      <p><strong>Atendimento:</strong> ${atendimento}</p>
       <p><strong>Entrada:</strong> ${new Date(pedido.criado_em).toLocaleString('pt-BR')}</p>
+      <p><strong>Início:</strong> ${pedido.iniciado_em ? new Date(pedido.iniciado_em).toLocaleString('pt-BR') : '—'}</p>
+      <p><strong>Saída (pronto/entregue):</strong> ${pedido.pronto_em ? new Date(pedido.pronto_em).toLocaleString('pt-BR') : '—'}</p>
+      <p><strong>Tempo estimado:</strong> ${pedido.tempo_total_estimado_min} min</p>
+      <p><strong>Tempo atual:</strong> ${emProducao}</p>
       <ul>${itens}</ul>
-      <div class="acoes"></div>
+      <div class="acoes">
+        <button data-acao="iniciar">Iniciar</button>
+        <button data-acao="pronto" class="sec">Pronto</button>
+        <button data-acao="entregue" class="sec">Entregue</button>
+      </div>
     `;
 
-    const acoesEl = article.querySelector('.acoes');
-
-    if (tipo === 'pendente') {
-      const iniciarBtn = document.createElement('button');
-      iniciarBtn.textContent = 'Iniciar preparo';
-      iniciarBtn.addEventListener('click', async () => {
-        await api(`/api/pedidos/${pedido.id}/iniciar`, { method: 'PATCH' });
+    article.querySelectorAll('button').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const acao = btn.getAttribute('data-acao');
+        await api(`/api/pedidos/${pedido.id}/${acao}`, { method: 'PATCH' });
         await loadPedidos();
       });
-      acoesEl.appendChild(iniciarBtn);
+    });
 
-      const prontoBtn = document.createElement('button');
-      prontoBtn.textContent = 'Marcar pronto';
-      prontoBtn.className = 'sec';
-      prontoBtn.addEventListener('click', async () => {
-        await api(`/api/pedidos/${pedido.id}/pronto`, { method: 'PATCH' });
-        await loadPedidos();
-      });
-      acoesEl.appendChild(prontoBtn);
-
-      if (pedido.status === 'pronto') {
-        const finalizarBtn = document.createElement('button');
-        finalizarBtn.className = 'sec';
-        finalizarBtn.textContent = pedido.tipo_atendimento === 'retirada' ? 'Confirmar retirada' : 'Confirmar envio';
-        finalizarBtn.addEventListener('click', async () => {
-          await api(`/api/pedidos/${pedido.id}/entregue`, { method: 'PATCH' });
-          await loadPedidos();
-        });
-        acoesEl.appendChild(finalizarBtn);
-      }
-    }
-
-    listaEl.appendChild(article);
+    pedidosEl.appendChild(article);
   });
-}
-
-function renderPedidos(pedidos) {
-  const pendentes = pedidos.filter((p) => ['recebido', 'em_preparo', 'pronto'].includes(p.status));
-  const concluidos = pedidos.filter((p) => p.status === 'entregue');
-
-  renderListaPedidos(pedidosPendentesEl, pendentes, 'pendente');
-  renderListaPedidos(pedidosConcluidosEl, concluidos, 'concluido');
 }
 
 async function loadPedidos() {
@@ -118,6 +96,7 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
     const senha = document.getElementById('func-pass').value;
     const result = await api('/api/func/login', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario, senha })
     });
 
@@ -127,24 +106,6 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
   } catch (error) {
     alert(error.message);
   }
-});
-
-document.getElementById('prato-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  await api('/api/pratos', {
-    method: 'POST',
-    body: JSON.stringify({
-      nome: document.getElementById('prato_nome').value.trim(),
-      categoria: document.getElementById('prato_categoria').value.trim(),
-      preco: Number(document.getElementById('prato_preco').value),
-      tempo_estimado_min: Number(document.getElementById('prato_tempo').value),
-      imagem_url: document.getElementById('prato_imagem').value.trim() || null
-    })
-  });
-
-  event.target.reset();
-  alert('Prato cadastrado com sucesso!');
 });
 
 document.getElementById('logout-btn').addEventListener('click', () => {
