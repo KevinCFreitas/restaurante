@@ -54,12 +54,37 @@ function isEmployeeAuthorized(req) {
 }
 
 function isEmployeeCredentialValid(usuario, senha) {
+  const db = getDb();
+  const funcionario = (db.funcionarios || []).find((f) => f.usuario === usuario && f.senha === senha);
+  if (funcionario) return true;
   return usuario === EMPLOYEE_USER && senha === EMPLOYEE_PASS;
 }
 
 function getDb() {
   ensureDb(DB_PATH);
-  return readDb(DB_PATH);
+  const db = readDb(DB_PATH);
+
+  if (!Array.isArray(db.funcionarios)) {
+    db.funcionarios = [
+      {
+        id: 1,
+        nome: 'Funcionário Padrão',
+        usuario: EMPLOYEE_USER,
+        senha: EMPLOYEE_PASS,
+        cargo: 'funcionario'
+      }
+    ];
+  }
+
+  if (!db.counters) {
+    db.counters = { prato: 0, pedido: 0, funcionario: db.funcionarios.length };
+  }
+
+  if (!db.counters.funcionario) {
+    db.counters.funcionario = db.funcionarios.length || 1;
+  }
+
+  return db;
 }
 
 function saveDb(db) {

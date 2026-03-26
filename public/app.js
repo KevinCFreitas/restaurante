@@ -1,14 +1,16 @@
 const state = {
   pratos: [],
-  carrinho: []
+  carrinho: [],
+  filtroPedidos: 'todos'
 };
 
 const cardapioEl = document.getElementById('cardapio');
 const itensSelecionadosEl = document.getElementById('itens-selecionados');
+const pedidosClienteEl = document.getElementById('pedidos-cliente');
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options
   });
 
@@ -24,33 +26,68 @@ function formatMoney(v) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function statusCliente(pedido) {
+  if (pedido.tipo_atendimento === 'retirada') {
+    if (pedido.status === 'pronto') return 'Pronto para retirada no estabelecimento';
+    if (pedido.status === 'entregue') return 'Pedido retirado no estabelecimento';
+    if (pedido.status === 'em_preparo') return 'Em preparo para retirada';
+    return 'Recebemos seu pedido para retirada';
+  }
+
+  if (pedido.status === 'pronto') return 'Pedido pronto e sendo enviado';
+  if (pedido.status === 'entregue') return 'Pedido enviado/entregue';
+  if (pedido.status === 'em_preparo') return 'Pedido em preparo para envio';
+  return 'Pedido recebido, aguardando preparo';
+}
+
 function renderCardapio() {
   cardapioEl.innerHTML = '';
 
-  state.pratos.forEach((prato) => {
-    const card = document.createElement('article');
-    card.className = 'prato';
-    card.innerHTML = `
-      ${prato.imagem_url ? `<img src="${prato.imagem_url}" alt="${prato.nome}" loading="lazy" />` : ''}
-      <h4>${prato.nome}</h4>
-      <p>${prato.categoria}</p>
-      <p><strong>${formatMoney(prato.preco)}</strong> · ${prato.tempo_estimado_min} min</p>
-      <button data-prato="${prato.id}">Adicionar</button>
-    `;
+  const grupos = state.pratos.reduce((acc, prato) => {
+    const categoria = prato.categoria || 'Outros';
+    if (!acc[categoria]) acc[categoria] = [];
+    acc[categoria].push(prato);
+    return acc;
+  }, {});
 
-    card.querySelector('button').addEventListener('click', () => {
-      const current = state.carrinho.find((i) => i.prato_id === prato.id);
-      if (current) current.quantidade += 1;
-      else state.carrinho.push({ prato_id: prato.id, quantidade: 1, nome: prato.nome });
-      renderCarrinho();
+  Object.entries(grupos).forEach(([categoria, pratos]) => {
+    const categoriaBox = document.createElement('section');
+    categoriaBox.className = 'categoria-box';
+
+    const titulo = document.createElement('h4');
+    titulo.textContent = categoria;
+    categoriaBox.appendChild(titulo);
+
+    const lista = document.createElement('div');
+    lista.className = 'categoria-grid';
+
+    pratos.forEach((prato) => {
+      const card = document.createElement('article');
+      card.className = 'prato';
+      card.innerHTML = `
+        ${prato.imagem_url ? `<img src="${prato.imagem_url}" alt="${prato.nome}" loading="lazy" />` : ''}
+        <h5>${prato.nome}</h5>
+        <p><strong>${formatMoney(prato.preco)}</strong> · ${prato.tempo_estimado_min} min</p>
+        <button data-prato="${prato.id}">Adicionar</button>
+      `;
+
+      card.querySelector('button').addEventListener('click', () => {
+        const current = state.carrinho.find((i) => i.prato_id === prato.id);
+        if (current) current.quantidade += 1;
+        else state.carrinho.push({ prato_id: prato.id, quantidade: 1, nome: prato.nome });
+        renderCarrinho();
+      });
+
+      lista.appendChild(card);
     });
 
-    cardapioEl.appendChild(card);
+    categoriaBox.appendChild(lista);
+    cardapioEl.appendChild(categoriaBox);
   });
 }
 
 function renderCarrinho() {
-  itensSelecionadosEl.innerHTML = '<h5>Itens selecionados</h5>';
+  itensSelecionadosEl.innerHTML = '<h5>Comanda</h5>';
 
   if (!state.carrinho.length) {
     itensSelecionadosEl.innerHTML += '<p>Nenhum item ainda.</p>';
@@ -69,9 +106,38 @@ async function loadPratos() {
   renderCardapio();
 }
 
+async function loadPedidosCliente() {
+  const clienteNome = document.getElementById('cliente_nome').value.trim().toLowerCase();
+  pedidosClienteEl.innerHTML = '<p>Digite seu nome para acompanhar seus pedidos.</p>';
+
+  if (!clienteNome) return;
+
+  const pedidos = await api(`/api/pedidos?cliente_nome=${encodeURIComponent(clienteNome)}`);
+  const meusPedidos = pedidos
+    .filter((pedido) => state.filtroPedidos === 'todos' || pedido.tipo_atendimento === state.filtroPedidos)
+    .slice(0, 6);
+
+  if (!meusPedidos.length) {
+    pedidosClienteEl.innerHTML = '<p>Nenhum pedido encontrado com esse nome.</p>';
+    return;
+  }
+
+  pedidosClienteEl.innerHTML = '';
+  meusPedidos.forEach((pedido) => {
+    const card = document.createElement('article');
+    card.className = 'pedido';
+    card.innerHTML = `
+      <h5>Pedido #${pedido.id} · ${pedido.tipo_atendimento === 'retirada' ? 'Retirada' : 'Delivery'}</h5>
+      <p>${statusCliente(pedido)}</p>
+    `;
+    pedidosClienteEl.appendChild(card);
+  });
+}
+
 document.getElementById('pedido-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const cliente_nome = document.getElementById('cliente_nome').value.trim();
+  const tipo_atendimento = document.getElementById('tipo_atendimento').value;
 
   if (!state.carrinho.length) {
     alert('Adicione ao menos 1 item ao pedido.');
@@ -80,40 +146,29 @@ document.getElementById('pedido-form').addEventListener('submit', async (event) 
 
   await api('/api/pedidos', {
     method: 'POST',
-    body: JSON.stringify({ cliente_nome, itens: state.carrinho })
+    body: JSON.stringify({ cliente_nome, tipo_atendimento, itens: state.carrinho })
   });
 
   state.carrinho = [];
-  event.target.reset();
   renderCarrinho();
+  await loadPedidosCliente();
   alert('Pedido enviado com sucesso!');
 });
 
-document.getElementById('prato-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  await api('/api/pratos', {
-    method: 'POST',
-    body: JSON.stringify({
-      nome: document.getElementById('prato_nome').value.trim(),
-      categoria: document.getElementById('prato_categoria').value.trim(),
-      preco: Number(document.getElementById('prato_preco').value),
-      tempo_estimado_min: Number(document.getElementById('prato_tempo').value),
-      imagem_url: document.getElementById('prato_imagem').value.trim() || null
-    })
+document.getElementById('cliente_nome').addEventListener('blur', () => {
+  loadPedidosCliente().catch(() => {
+    pedidosClienteEl.innerHTML = '<p>Não foi possível carregar os pedidos agora.</p>';
   });
-
-  event.target.reset();
-  await loadPratos();
 });
 
-document.querySelectorAll('.aba').forEach((button) => {
+document.querySelectorAll('[data-filtro]').forEach((button) => {
   button.addEventListener('click', () => {
-    document.querySelectorAll('.aba').forEach((b) => b.classList.remove('ativa'));
-    document.querySelectorAll('.tab').forEach((tab) => tab.classList.remove('ativo'));
-
-    button.classList.add('ativa');
-    document.getElementById(`tab-${button.dataset.tab}`).classList.add('ativo');
+    state.filtroPedidos = button.getAttribute('data-filtro');
+    document.querySelectorAll('[data-filtro]').forEach((btn) => btn.classList.remove('ativo'));
+    button.classList.add('ativo');
+    loadPedidosCliente().catch(() => {
+      pedidosClienteEl.innerHTML = '<p>Não foi possível filtrar os pedidos agora.</p>';
+    });
   });
 });
 

@@ -58,9 +58,10 @@ Para produção real, conecte um banco (Postgres, MongoDB, Supabase, etc.).
 
 ## Rotas da API
 - `POST /api/func/login`
+- `POST /api/func/cadastro`
 - `GET /api/pratos`
 - `POST /api/pratos`
-- `GET /api/pedidos` (restrito a funcionário)
+- `GET /api/pedidos` (restrito a funcionário, ou público com `?cliente_nome=...`)
 - `POST /api/pedidos`
 - `PATCH /api/pedidos/:id/iniciar` (restrito a funcionário)
 - `PATCH /api/pedidos/:id/pronto` (restrito a funcionário)
