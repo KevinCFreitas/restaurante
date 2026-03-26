@@ -1,4 +1,4 @@
-const { getDb, saveDb, parseBody, sendJson } = require('./_utils');
+const { getDb, saveDb, parseBody, sendJson, isEmployeeAuthorized } = require('./_utils');
 
 module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
@@ -7,6 +7,10 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    if (!isEmployeeAuthorized(req)) {
+      return sendJson(res, 401, { erro: 'Acesso restrito para funcionários.' });
+    }
+
     try {
       const body = await parseBody(req);
       const { nome, categoria, preco, tempo_estimado_min, imagem_url } = body;

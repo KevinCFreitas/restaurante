@@ -25,13 +25,47 @@
           <label>Senha <input id="func-pass" type="password" required /></label>
           <button type="submit">Entrar</button>
         </form>
+        <hr />
+        <h4>Criar conta (funcionário/cozinheiro)</h4>
+        <form id="cadastro-func-form">
+          <label>Nome <input id="novo-nome" required /></label>
+          <label>Usuário <input id="novo-user" required /></label>
+          <label>Senha <input id="novo-pass" type="password" required /></label>
+          <label>
+            Cargo
+            <select id="novo-cargo" required>
+              <option value="funcionario">Funcionário</option>
+              <option value="cozinheiro">Cozinheiro</option>
+            </select>
+          </label>
+          <button type="submit">Criar conta</button>
+        </form>
       </section>
 
       <section id="cozinha-app" class="tab" style="display: none">
-        <h3>Painel da cozinha</h3>
-        <p class="subtle">Somente usuários autenticados conseguem visualizar e atualizar pedidos.</p>
+        <h3>Painel de funcionários</h3>
+        <p class="subtle">Visualize pedidos para fazer, pedidos concluídos e cadastre pratos.</p>
         <button id="logout-btn" class="sec-btn">Sair da área de funcionários</button>
-        <div id="pedidos" class="coluna" style="margin-top: 1rem"></div>
+        <div class="grid cols-funcionario" style="margin-top: 1rem">
+          <section class="card">
+            <h4>Pedidos para fazer</h4>
+            <div id="pedidos-pendentes" class="coluna"></div>
+          </section>
+          <section class="card">
+            <h4>Pedidos concluídos</h4>
+            <div id="pedidos-concluidos" class="coluna"></div>
+          </section>
+        </div>
+
+        <form id="prato-form" class="card" style="margin-top: 1rem">
+          <h4>Cadastrar prato</h4>
+          <label>Nome <input id="prato_nome" required /></label>
+          <label>Categoria <input id="prato_categoria" required placeholder="Ex: Massas, Bebidas" /></label>
+          <label>Preço (R$) <input id="prato_preco" type="number" min="0" step="0.01" required /></label>
+          <label>Tempo estimado (min) <input id="prato_tempo" type="number" min="1" required /></label>
+          <label>URL da imagem <input id="prato_imagem" type="url" placeholder="https://..." /></label>
+          <button type="submit">Salvar prato</button>
+        </form>
       </section>
     </main>
 

@@ -138,10 +138,29 @@ main {
   margin: 0 2rem 2rem;
 }
 
+.layout-principal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.painel-lateral {
+  position: sticky;
+  top: 92px;
+  align-self: start;
+  display: grid;
+  gap: 1rem;
+}
+
 h3,
 h4,
 h5 {
   color: #fff;
+}
+
+h5 {
+  margin: 0.2rem 0 0.5rem;
 }
 
 .tab {
@@ -170,6 +189,19 @@ h5 {
   gap: 1rem;
 }
 
+.categoria-box {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+  border-radius: 14px;
+  padding: 1rem;
+  border: 1px solid var(--card-border);
+}
+
+.categoria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
 .card,
 .prato,
 .pedido {
@@ -190,6 +222,19 @@ h5 {
   border-color: rgba(250, 204, 21, 0.45);
 }
 
+.comanda-card {
+  border-style: dashed;
+  border-width: 2px;
+}
+
+.comanda-box {
+  margin: 0.8rem 0;
+  padding: 0.8rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+}
+
 
 .prato img {
   width: 100%;
@@ -203,6 +248,10 @@ h5 {
 .prato h4,
 .pedido h4 {
   margin: 0 0 0.5rem;
+}
+
+.cols-funcionario {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .prato p,
@@ -328,6 +377,16 @@ button:hover {
   padding: 0.65rem 0.9rem;
 }
 
+.filtro-status {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filtro-status .sec-btn.ativo {
+  outline: 2px solid var(--yellow-300);
+}
+
 @media (max-width: 720px) {
   .topo,
   main,
@@ -342,5 +401,13 @@ button:hover {
   .topo {
     padding-top: 1rem;
     padding-bottom: 1rem;
+  }
+
+  .layout-principal {
+    grid-template-columns: 1fr;
+  }
+
+  .painel-lateral {
+    position: static;
   }
 }
